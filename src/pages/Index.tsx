@@ -1,10 +1,11 @@
-
 import React, { useState } from "react";
 import { CarSymptomForm, SymptomData } from "@/components/CarSymptomForm";
 import { DiagnosticResults, Diagnosis } from "@/components/DiagnosticResults";
 import { analyzeCar } from "@/services/diagnosticService";
-import { CarFront, ArrowRight } from "lucide-react";
+import { CarFront, ArrowRight, AlertTriangle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -15,6 +16,7 @@ const Index = () => {
     year: "",
   });
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const { toast } = useToast();
 
   const handleSymptomSubmit = async (symptomData: SymptomData) => {
     setIsAnalyzing(true);
@@ -28,13 +30,21 @@ const Index = () => {
     try {
       const result = await analyzeCar(symptomData);
       setDiagnoses(result.diagnoses);
+      toast({
+        title: "Analysis Complete",
+        description: "We've analyzed your car's symptoms and provided recommendations.",
+      });
     } catch (error) {
       console.error("Error analyzing car symptoms:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Unable to analyze symptoms. Please try again.",
+      });
     } finally {
       setIsAnalyzing(false);
     }
     
-    // Scroll to results after a short delay to ensure they're rendered
     setTimeout(() => {
       document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -43,14 +53,13 @@ const Index = () => {
   const resetDiagnosis = () => {
     setDiagnoses([]);
     setHasSubmitted(false);
-    // Scroll back to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-repair-blue text-white py-6">
+      <header className="bg-gradient-to-r from-repair-blue to-repair-blue-dark text-white py-6">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center gap-3 mb-2">
             <CarFront className="h-8 w-8" />
@@ -67,11 +76,11 @@ const Index = () => {
         <div className="flex flex-col items-center">
           {/* How it works section */}
           {!hasSubmitted && (
-            <div className="w-full max-w-3xl bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="w-full max-w-3xl bg-white rounded-lg shadow-sm p-6 mb-8 transform transition-all duration-300 hover:shadow-md">
               <h2 className="text-xl font-semibold mb-4 text-repair-gray-dark">How It Works</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex flex-col items-center text-center">
-                  <div className="bg-repair-blue/10 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                <div className="flex flex-col items-center text-center group">
+                  <div className="bg-repair-blue/10 w-12 h-12 rounded-full flex items-center justify-center mb-3 group-hover:bg-repair-blue/20 transition-colors">
                     <span className="text-repair-blue font-bold">1</span>
                   </div>
                   <h3 className="font-medium mb-1">Describe Symptoms</h3>
@@ -80,8 +89,8 @@ const Index = () => {
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center text-center">
-                  <div className="bg-repair-blue/10 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                <div className="flex flex-col items-center text-center group">
+                  <div className="bg-repair-blue/10 w-12 h-12 rounded-full flex items-center justify-center mb-3 group-hover:bg-repair-blue/20 transition-colors">
                     <span className="text-repair-blue font-bold">2</span>
                   </div>
                   <h3 className="font-medium mb-1">AI Analysis</h3>
@@ -90,8 +99,8 @@ const Index = () => {
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center text-center">
-                  <div className="bg-repair-blue/10 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                <div className="flex flex-col items-center text-center group">
+                  <div className="bg-repair-blue/10 w-12 h-12 rounded-full flex items-center justify-center mb-3 group-hover:bg-repair-blue/20 transition-colors">
                     <span className="text-repair-blue font-bold">3</span>
                   </div>
                   <h3 className="font-medium mb-1">Get Recommendations</h3>
@@ -107,12 +116,18 @@ const Index = () => {
           {(!hasSubmitted || isAnalyzing) && (
             <div className="w-full mb-8">
               <CarSymptomForm onSubmit={handleSymptomSubmit} isAnalyzing={isAnalyzing} />
+              {isAnalyzing && (
+                <div className="mt-8 text-center">
+                  <LoadingSpinner />
+                  <p className="text-repair-blue mt-4">Analyzing your car's symptoms...</p>
+                </div>
+              )}
             </div>
           )}
 
           {/* Results Section */}
           {hasSubmitted && !isAnalyzing && diagnoses.length > 0 && (
-            <div id="results" className="w-full space-y-6">
+            <div id="results" className="w-full space-y-6 animate-fade-in">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <ArrowRight className="h-5 w-5 text-repair-blue" />
                 <h2 className="text-2xl font-semibold text-center">Diagnostic Results</h2>
