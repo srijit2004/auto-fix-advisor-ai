@@ -52,6 +52,30 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+        // Auto repair themed colors
+        repair: {
+          blue: {
+            DEFAULT: '#1a56db',
+            light: '#3b82f6',
+            dark: '#1e429f',
+          },
+          orange: {
+            DEFAULT: '#f97316',
+            light: '#fb923c',
+            dark: '#c2410c',
+          },
+          gray: {
+            DEFAULT: '#4b5563',
+            light: '#9ca3af',
+            dark: '#1f2937',
+          },
+          severity: {
+            low: '#22c55e',     // Green for minor issues
+            medium: '#f59e0b',  // Amber for moderate issues
+            high: '#ef4444',    // Red for serious problems
+            critical: '#7f1d1d' // Dark red for critical issues
+          }
+        },
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
