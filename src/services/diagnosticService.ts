@@ -1,9 +1,9 @@
-
 import type { Diagnosis } from "@/components/DiagnosticResults";
 import type { SymptomData } from "@/components/CarSymptomForm";
+import { enrichDiagnostics } from "./apiClient";
 
 // Mock database of potential car issues and their diagnoses
-const carIssuesDatabase = {
+export const carIssuesDatabase = {
   engine: {
     "won't start": [
       {
@@ -704,119 +704,137 @@ interface DiagnosticResponse {
 
 // Function to analyze symptoms and provide diagnoses
 export async function analyzeCar(symptomData: SymptomData): Promise<DiagnosticResponse> {
-  return new Promise((resolve) => {
-    // Simulate processing time with a delay
-    setTimeout(() => {
-      const diagnoses: Diagnosis[] = [];
-      
-      // Mock AI diagnostic algorithm
-      const description = symptomData.description.toLowerCase();
-      const category = symptomData.symptomCategory;
-      
-      // Check for common symptoms in the description
-      const keywordChecks = {
-        "engine": {
-          "won't start": ["won't start", "won't turn over", "doesn't start", "no start", "not starting"],
-          "stalling": ["stalling", "stalls", "dies", "cuts out"],
-          "check engine light": ["check engine", "engine light", "warning light"],
-          "knocking": ["knocking", "knock", "tapping", "clicking"]
-        },
-        "brakes": {
-          "grinding": ["grinding", "grind", "metal on metal"],
-          "squeaking": ["squeak", "squeal", "high pitched"],
-          "soft pedal": ["soft pedal", "spongy", "goes to floor"]
-        },
-        "transmission": {
-          "slipping": ["slipping", "slips", "revs without accelerating"],
-          "hard shifting": ["hard shift", "difficult to shift", "clunk", "jerks when shifting"]
-        },
-        "electrical": {
-          "battery drain": ["battery dead", "drains battery", "won't hold charge"],
-          "dim lights": ["dim lights", "flickering", "headlights dim"]
-        },
-        "cooling": {
-          "overheating": ["overheat", "overheating", "temperature high", "running hot"],
-          "white smoke": ["white smoke", "steam", "sweet smell"]
-        },
-        "suspension": {
-          "bouncing": ["bouncing", "bouncy", "continues to bounce"],
-          "pulling": ["pulls", "pulling", "drifts", "veers"]
-        },
-        "exhaust": {
-          "loud": ["loud exhaust", "muffler noise", "rumbling"],
-          "black smoke": ["black smoke", "dark smoke"]
-        },
-        "fuel": {
-          "poor economy": ["bad gas mileage", "poor mpg", "using more gas"],
-          "smell": ["fuel smell", "gas smell", "gasoline odor"]
-        },
-        "other": {
-          "vibration": ["vibration", "shaking", "shimmy"],
-          "rattling": ["rattle", "rattling", "loose"]
-        }
-      };
-      
-      // Function to check if description contains any of the keywords
-      const containsKeyword = (keywords: string[]): boolean => {
-        return keywords.some(keyword => description.includes(keyword));
-      };
-      
-      // Check for matches in the selected category first
-      if (keywordChecks[category as keyof typeof keywordChecks]) {
-        const categoryChecks = keywordChecks[category as keyof typeof keywordChecks];
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Simulate processing time with a delay
+      setTimeout(async () => {
+        const diagnoses: Diagnosis[] = [];
         
-        for (const [issueType, keywords] of Object.entries(categoryChecks)) {
-          if (containsKeyword(keywords)) {
-            // @ts-ignore - We know this structure exists
-            const possibleIssues = carIssuesDatabase[category][issueType] || [];
-            diagnoses.push(...possibleIssues);
+        // Mock AI diagnostic algorithm
+        const description = symptomData.description.toLowerCase();
+        const category = symptomData.symptomCategory;
+        
+        // Check for common symptoms in the description
+        const keywordChecks = {
+          "engine": {
+            "won't start": ["won't start", "won't turn over", "doesn't start", "no start", "not starting"],
+            "stalling": ["stalling", "stalls", "dies", "cuts out"],
+            "check engine light": ["check engine", "engine light", "warning light"],
+            "knocking": ["knocking", "knock", "tapping", "clicking"]
+          },
+          "brakes": {
+            "grinding": ["grinding", "grind", "metal on metal"],
+            "squeaking": ["squeak", "squeal", "high pitched"],
+            "soft pedal": ["soft pedal", "spongy", "goes to floor"]
+          },
+          "transmission": {
+            "slipping": ["slipping", "slips", "revs without accelerating"],
+            "hard shifting": ["hard shift", "difficult to shift", "clunk", "jerks when shifting"]
+          },
+          "electrical": {
+            "battery drain": ["battery dead", "drains battery", "won't hold charge"],
+            "dim lights": ["dim lights", "flickering", "headlights dim"]
+          },
+          "cooling": {
+            "overheating": ["overheat", "overheating", "temperature high", "running hot"],
+            "white smoke": ["white smoke", "steam", "sweet smell"]
+          },
+          "suspension": {
+            "bouncing": ["bouncing", "bouncy", "continues to bounce"],
+            "pulling": ["pulls", "pulling", "drifts", "veers"]
+          },
+          "exhaust": {
+            "loud": ["loud exhaust", "muffler noise", "rumbling"],
+            "black smoke": ["black smoke", "dark smoke"]
+          },
+          "fuel": {
+            "poor economy": ["bad gas mileage", "poor mpg", "using more gas"],
+            "smell": ["fuel smell", "gas smell", "gasoline odor"]
+          },
+          "other": {
+            "vibration": ["vibration", "shaking", "shimmy"],
+            "rattling": ["rattle", "rattling", "loose"]
           }
-        }
-      }
-      
-      // If we didn't find any specific matches, check other categories too
-      if (diagnoses.length === 0) {
-        for (const [checkCategory, categoryChecks] of Object.entries(keywordChecks)) {
-          // Skip the already checked selected category
-          if (checkCategory === category) continue;
+        };
+        
+        // Function to check if description contains any of the keywords
+        const containsKeyword = (keywords: string[]): boolean => {
+          return keywords.some(keyword => description.includes(keyword));
+        };
+        
+        // Check for matches in the selected category first
+        if (keywordChecks[category as keyof typeof keywordChecks]) {
+          const categoryChecks = keywordChecks[category as keyof typeof keywordChecks];
           
           for (const [issueType, keywords] of Object.entries(categoryChecks)) {
             if (containsKeyword(keywords)) {
               // @ts-ignore - We know this structure exists
-              const possibleIssues = carIssuesDatabase[checkCategory][issueType] || [];
+              const possibleIssues = carIssuesDatabase[category][issueType] || [];
               diagnoses.push(...possibleIssues);
             }
           }
         }
-      }
-      
-      // If still no diagnoses, provide a generic response
-      if (diagnoses.length === 0) {
-        diagnoses.push({
-          issue: "Unidentified Issue",
-          description: "Based on the symptoms described, we couldn't identify a specific issue. More information or a hands-on inspection may be needed.",
-          severity: "medium",
-          possibleCauses: [
-            "Insufficient symptom information",
-            "Combination of multiple minor issues",
-            "Uncommon or complex problem"
-          ],
-          recommendedFixes: [
-            {
-              action: "Visit a professional mechanic for diagnostic",
-              difficulty: "Mechanic",
-              estimatedCost: "$80-$150 for diagnostic"
-            },
-            {
-              action: "Provide more detailed symptom information",
-              difficulty: "DIY",
-              estimatedCost: "Free"
+        
+        // If we didn't find any specific matches, check other categories too
+        if (diagnoses.length === 0) {
+          for (const [checkCategory, categoryChecks] of Object.entries(keywordChecks)) {
+            // Skip the already checked selected category
+            if (checkCategory === category) continue;
+            
+            for (const [issueType, keywords] of Object.entries(categoryChecks)) {
+              if (containsKeyword(keywords)) {
+                // @ts-ignore - We know this structure exists
+                const possibleIssues = carIssuesDatabase[checkCategory][issueType] || [];
+                diagnoses.push(...possibleIssues);
+              }
             }
-          ]
-        } as Diagnosis);
-      }
-      
-      resolve({ diagnoses });
-    }, 1500); // 1.5 second delay to simulate processing
+          }
+        }
+        
+        // If still no diagnoses, provide a generic response
+        if (diagnoses.length === 0) {
+          diagnoses.push({
+            issue: "Unidentified Issue",
+            description: "Based on the symptoms described, we couldn't identify a specific issue. More information or a hands-on inspection may be needed.",
+            severity: "medium",
+            possibleCauses: [
+              "Insufficient symptom information",
+              "Combination of multiple minor issues",
+              "Uncommon or complex problem"
+            ],
+            recommendedFixes: [
+              {
+                action: "Visit a professional mechanic for diagnostic",
+                difficulty: "Mechanic",
+                estimatedCost: "$80-$150 for diagnostic"
+              },
+              {
+                action: "Provide more detailed symptom information",
+                difficulty: "DIY",
+                estimatedCost: "Free"
+              }
+            ]
+          } as Diagnosis);
+        }
+        
+        // Enhance our diagnoses with real API data if the car details are provided
+        if (symptomData.carMake && symptomData.carModel && symptomData.carYear) {
+          try {
+            const enrichedDiagnoses = await enrichDiagnostics(symptomData, diagnoses);
+            resolve({ diagnoses: enrichedDiagnoses });
+          } catch (error) {
+            console.error("API enrichment failed:", error);
+            // Still return our local diagnoses if API fails
+            resolve({ diagnoses });
+          }
+        } else {
+          // No car details provided, just return our local diagnoses
+          resolve({ diagnoses });
+        }
+      }, 1500); // 1.5 second delay to simulate processing
+    } catch (error) {
+      console.error("Error in analyzeCar:", error);
+      reject(error);
+    }
   });
 }

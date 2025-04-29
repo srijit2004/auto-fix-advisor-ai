@@ -1,11 +1,13 @@
+
 import React, { useState } from "react";
 import { CarSymptomForm, SymptomData } from "@/components/CarSymptomForm";
 import { DiagnosticResults, Diagnosis } from "@/components/DiagnosticResults";
 import { analyzeCar } from "@/services/diagnosticService";
-import { CarFront, ArrowRight, AlertTriangle } from "lucide-react";
+import { CarFront, ArrowRight, AlertTriangle, CloudOff } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Index = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -16,11 +18,13 @@ const Index = () => {
     year: "",
   });
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSymptomSubmit = async (symptomData: SymptomData) => {
     setIsAnalyzing(true);
     setHasSubmitted(true);
+    setApiError(null);
     setCarInfo({
       make: symptomData.carMake,
       model: symptomData.carModel,
@@ -36,10 +40,11 @@ const Index = () => {
       });
     } catch (error) {
       console.error("Error analyzing car symptoms:", error);
+      setApiError("Unable to connect to the diagnostic API. Some data may be limited to local analysis.");
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Unable to analyze symptoms. Please try again.",
+        title: "API Connection Error",
+        description: "We had trouble connecting to our diagnostic API. Using local analysis only.",
       });
     } finally {
       setIsAnalyzing(false);
@@ -53,6 +58,7 @@ const Index = () => {
   const resetDiagnosis = () => {
     setDiagnoses([]);
     setHasSubmitted(false);
+    setApiError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -95,7 +101,7 @@ const Index = () => {
                   </div>
                   <h3 className="font-medium mb-1">AI Analysis</h3>
                   <p className="text-sm text-muted-foreground">
-                    Our AI system analyzes the symptoms to identify potential issues
+                    Our AI system analyzes the symptoms and checks against real vehicle recall data
                   </p>
                 </div>
 
@@ -119,10 +125,21 @@ const Index = () => {
               {isAnalyzing && (
                 <div className="mt-8 text-center">
                   <LoadingSpinner />
-                  <p className="text-repair-blue mt-4">Analyzing your car's symptoms...</p>
+                  <p className="text-repair-blue mt-4">Analyzing your car's symptoms and checking recall databases...</p>
                 </div>
               )}
             </div>
+          )}
+
+          {/* API Error Alert */}
+          {apiError && !isAnalyzing && (
+            <Alert variant="warning" className="mb-6 max-w-3xl">
+              <CloudOff className="h-4 w-4" />
+              <AlertTitle>API Connection Issue</AlertTitle>
+              <AlertDescription>
+                {apiError} Your diagnosis may not include the most recent recall information.
+              </AlertDescription>
+            </Alert>
           )}
 
           {/* Results Section */}
@@ -147,9 +164,9 @@ const Index = () => {
               <div className="bg-blue-50 border border-blue-100 rounded-lg p-6 mt-8 text-center">
                 <h3 className="text-lg font-medium text-repair-blue mb-2">Important Notice</h3>
                 <p className="text-sm text-muted-foreground">
-                  This AI diagnostic tool provides general guidance based on symptoms described. 
-                  It is not a substitute for professional diagnosis by a qualified mechanic. 
-                  Always consult with a professional for serious vehicle issues.
+                  This AI diagnostic tool provides general guidance based on symptoms described and 
+                  checks for official vehicle recalls. It is not a substitute for professional diagnosis 
+                  by a qualified mechanic. Always consult with a professional for serious vehicle issues.
                 </p>
               </div>
             </div>
