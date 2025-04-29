@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { CarSymptomForm, SymptomData } from "@/components/CarSymptomForm";
 import { DiagnosticResults, Diagnosis } from "@/components/DiagnosticResults";
@@ -54,7 +53,7 @@ const Index = () => {
       document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   };
-
+  
   const resetDiagnosis = () => {
     setDiagnoses([]);
     setHasSubmitted(false);
@@ -133,7 +132,7 @@ const Index = () => {
 
           {/* API Error Alert */}
           {apiError && !isAnalyzing && (
-            <Alert variant="warning" className="mb-6 max-w-3xl">
+            <Alert className="mb-6 max-w-3xl border-yellow-400 bg-yellow-50">
               <CloudOff className="h-4 w-4" />
               <AlertTitle>API Connection Issue</AlertTitle>
               <AlertDescription>
